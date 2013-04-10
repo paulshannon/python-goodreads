@@ -17,38 +17,183 @@ class GoodreadsAuthor(object):
         raise NotImplementedError
 
     @classmethod
-    def from_element(cls, author):
-        return {
+    def from_small_element(cls, author):
+        return cls(**{
             'id': author.id,
             'name': author.name,
             'image': author.image_url,
-            'link': author.link
-            }
+            'small_image': author.small_image_url,
+            'link': author.link,
+            'average_rating': author.average_rating,
+            'ratings_count': author.ratings_count,
+            'text_reviews_count': author.text_reviews_count,
+            })
 
 
-class GoodreadsBook(object):
+class GoodreadsSeries(object):
 
     def __init__(self):
         raise NotImplementedError
 
+        # <series>
+        # <id>62223</id>
+        # <title>
+        # <![CDATA[
+        #    Brian's Saga
+        # ]]>
+        # </title>
+        # <description>
+        # <![CDATA[
+        # ]]>
+        # </description>
+        # <note>
+        # <![CDATA[
+        # ]]>
+        # </note>
+        # <series_works_count>7</series_works_count>
+        # <primary_work_count>5</primary_work_count>
+        # <numbered>true</numbered>
+        # </series>
+
+
+class GoodreadsWork(object):
+
+    def __init__(self, *args, **kwargs):
+        self.id = kwargs.get('id', None)
+        self.title = kwargs.get('title', None)
+        self.media_type = kwargs.get('media_type', None)
+        self.publication_day = kwargs.get('publication_day', None)
+        self.publication_month = kwargs.get('publication_month', None)
+        self.publication_year = kwargs.get('publication_year', None)
+        self.language_id = kwargs.get('language_id', None)
+        self.best_book_id = kwargs.get('best_book_id', None)
+        self.books_count = kwargs.get('books_count', None)
+        self.default_chaptering_book_id = kwargs.get('default_chaptering_book_id', None)
+        self.desc_user_id = kwargs.get('desc_user_id', None)
+        self.rating_dist = kwargs.get('rating_dist', None)
+        self.ratings_count = kwargs.get('ratings_count', None)
+        self.ratings_sum = kwargs.get('ratings_sum', None)
+        self.reviews_count = kwargs.get('reviews_count', None)
+        self.text_reviews_count = kwargs.get('text_reviews_count', None)
+
+    @classmethod
+    def from_element(cls, work):
+        cls(**{
+            'id': work.id,
+            'title': work.title,
+            'media_type': work.media_type,
+            'publication_day': work.publication_day,
+            'publication_month': work.publication_month,
+            'publication_year': work.publication_year,
+            'language_id': work.language_id,
+            'best_book_id': work.best_book_id,
+            'books_count': work.books_count,
+            'default_chaptering_book_id': work.default_chaptering_book_id,
+            'desc_user_id': work.desc_user_id,
+            'rating_dist': work.rating_dist,
+            'ratings_count': work.ratings_count,
+            'ratings_sum': work.ratings_sum,
+            'reviews_count': work.reviews_count,
+            'text_reviews_count': work.text_reviews_count,
+            })
+
+
+class GoodreadsBook(object):
+
+    def __init__(self, *args, **kwargs):
+        self.id = kwargs.get('id', None)
+        self.title = kwargs.get('title', None)
+        self.authors = kwargs.get('authors', None)
+        self.publication_year = kwargs.get('publication_year', None)
+        self.publication_month = kwargs.get('publication_month', None)
+        self.publication_day = kwargs.get('publication_day', None)
+        self.publisher = kwargs.get('publisher', None)
+        self.language_code = kwargs.get('language_code', None)
+        self.num_pages = kwargs.get('num_pages', None)
+        self.format = kwargs.get('format', None)
+        self.edition_information = kwargs.get('edition_information', None)
+        self.is_ebook = kwargs.get('is_ebook', None)
+
+        self.image_url = kwargs.get('image_url', None)
+        self.small_image_url = kwargs.get('small_image_url', None)
+        self.url = kwargs.get('url', None)
+        self.link = kwargs.get('link', None)
+
+        self.description = kwargs.get('description', None)
+        self.average_rating = kwargs.get('average_rating', None)
+        self.ratings_count = kwargs.get('ratings_count', None)
+        self.text_reviews_count = kwargs.get('text_reviews_count', None)
+        self.reviews_widget = kwargs.get('reviews_widget', None)
+        self.popular_shelves = kwargs.get('popular_shelves', None)
+        self.book_links = kwargs.get('book_links', None)
+
+        self.isbn = kwargs.get('isbn', None)
+        self.isbn13 = kwargs.get('isbn13', None)
+        self.asin = kwargs.get('asin', None)
+
+        self.series = kwargs.get('series', None)
+
+    def __repr__(self):
+        return '<GoodreadsBook: %s.%s>' % (self.id, self.title)
+
     @classmethod
     def from_element(cls, book):
-        return {
+        b = cls.from_small_element(book)
+        b.publication_year = book.publication_year
+        b.publication_month = book.publication_month
+        b.publication_day = book.publication_day
+        b.language_code = book.language_code
+        b.edition_information = book.edition_information
+        b.is_ebook = book.is_ebook
+        b.small_image_url = book.small_image_url
+        b.url = book.url
+        b.link = book.link
+        b.description = book.description
+        b.average_rating = book.average_rating
+        b.ratings_count = book.ratings_count
+        b.text_reviews_count = book.text_reviews_count
+        b.reviews_widget = book.reviews_widget
+        b.popular_shelves = [(s.attrib['name'], s.attrib['count']) for s in book.popular_shelves.iterate_children()]
+        b.book_links = [{'id': l.id, 'name': l.name, 'link': l.link} for l in book.book_links.iterate_children()]
+        b.isbn13 = book.isbn13
+        b.asin = book.asin
+        b.series = [{'id': sw.id, 'position': sw.user_position, 'series': GoodreadsSeries.from_element(sw.series)} for sw in book.series_works.iterate_children()]
+        b.similar_books = [cls.from_small_element(sb) for sb in book.similar_books.iterate_children()]
+
+        return b
+
+    @classmethod
+    def from_small_element(cls, book):
+        return cls(**{
             'id': book.id,
             'title': book.title,
-            'authors': [cls.author_from_element(author) for author in book.authors.iterchildren()],
+            'authors': [GoodreadsAuthor.from_element(author) for author in book.authors.iterchildren()],
             'format': book.format,
             'pages': book.num_pages,
             'date': book.published,
             'publisher': book.publisher,
             'image': book.image_url,
             'isbn': book.isbn,
-            }
+            })
 
 
 class GoodreadsShelf(object):
     def __init__(self):
         raise NotImplementedError
+
+    #        book_count
+    #        description
+    #        display_fields
+    #        exclusive
+    #        featured
+    #        id
+    #        user_id
+    #        name
+    #        order
+    #        per_page
+    #        recommend_for
+    #        sort
+    #        sticky
 
 
 class Goodreads(object):
@@ -129,6 +274,7 @@ class Goodreads(object):
         self.client = oauth.Client(self.consumer, self.token)
 
 ################ API #################
+# http://www.goodreads.com/api
 
     # User
 
@@ -741,5 +887,3 @@ class Goodreads(object):
 #
 #        self.POST('quotes.xml')
 #        # Parameters:     quote[author_name]: Name of the quote author (required)    quote[author_id]: id of the author    quote[book_id]: id of the book from which the quote was taken    quote[body]: The quote! (required)    quote[tags]: Comma-separated tags    isbn: ISBN of the book from which the quote was taken. This will not override the book_id if it was provided
-
-
