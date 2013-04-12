@@ -614,37 +614,6 @@ class Goodreads(object):
 #        self.get('group/show.xml?id=GROUP_ID')
 #        # Parameters:     sort: Field to sort topics by. One of 'comments_count', 'title', 'updated_at', 'views'    order: 'a' for ascending, 'd' for descending    key: Developer key (required).
 
-# Lists
-#    def list_book(self,):
-#        '''
-#        Get the listopia lists for a given book.
-#
-#        XML version of list/book. This API requires extra permission please contact us
-#        '''
-#
-#        self.get('list/book.xml?id=BOOK_ID')
-#        # Parameters:     key: Developer key (required).
-#
-#    def list_show(self,):
-#        '''
-#        Get the books from a listopia list. This API requires extra permission please contact us.
-#
-#        XML version of list/show
-#        '''
-#
-#        self.get('list/show.xml?id=LIST_ID')
-#        # Parameters:     key: Developer key (required).
-#
-#    def list_tag(self,):
-#        '''
-#        Get the listopia lists for a given tag. This API requires extra permission please contact us.
-#
-#        XML version of list/tag
-#        '''
-#
-#        self.get('list/tag.xml?id=tag_name')
-#        # Parameters:     key: Developer key (required).
-
 # Owned Books
 #    def owned_books_create(self,):
 #        '''
@@ -866,17 +835,6 @@ class Goodreads(object):
 #        self.get('topic/unread_group/GROUP_ID?format=xml')
 #        # Parameters:     viewed: Indicates whether to show topics user has viewed before or not. Default is to include all topics; set this param to 'true' or '1' to restrict to only topics the user has already viewed    page: Page in results to show, 1-N (default 1)    sort: One of 'comments_count', 'title', 'updated_at', 'views'    order: 'a' for ascending, 'd' for descending
 
-# Work Editions
-#    def work_editions(self,):
-#        '''
-#        See all editions by work.
-#
-#        List of all the available editions of a particular work. This API requires extra permission please contact us
-#        '''
-#
-#        self.get('/work/editions.xml?id=WORK_ID')
-#        # Parameters:     key: Developer key (required)
-
 # Misc
 #    def quotes_create(self,):
 #        '''
@@ -887,3 +845,28 @@ class Goodreads(object):
 #
 #        self.POST('quotes.xml')
 #        # Parameters:     quote[author_name]: Name of the quote author (required)    quote[author_id]: id of the author    quote[book_id]: id of the book from which the quote was taken    quote[body]: The quote! (required)    quote[tags]: Comma-separated tags    isbn: ISBN of the book from which the quote was taken. This will not override the book_id if it was provided
+
+# Extra Permissions
+    def work_editions(self):
+        '''
+        List of all the available editions of a particular work. This API requires extra permission
+        '''
+        raise NotImplementedError('Extra permissions from goodreads were denied for development.')
+
+    def list_show(self,):
+        '''
+        Get the books from a listopia list. This API requires extra permission
+        '''
+        raise NotImplementedError('Extra permissions from goodreads were denied for development.')
+
+    def list_tag(self,):
+        '''
+        Get the listopia lists for a given tag. This API requires extra permission
+        '''
+        raise NotImplementedError('Extra permissions from goodreads were denied for development.')
+
+    def list_book(self,):
+        '''
+        Get the listopia lists for a given book. This API requires extra permission
+        '''
+        raise NotImplementedError('Extra permissions from goodreads were denied for development.')
