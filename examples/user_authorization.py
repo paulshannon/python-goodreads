@@ -15,3 +15,4 @@ while accepted.lower() == 'n':
 token = g.oauth_retrieve_token()
 
 print 'You need to save key: \'%s\' and secret: \'%s\'' % (token.key, token.secret)
+
