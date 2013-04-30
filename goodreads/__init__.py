@@ -1,4 +1,4 @@
-from lxml import objectify
+from lxml.objectify import fromstring as object_from_string  # @UnresolvedImport
 from urllib import urlencode
 import oauth2 as oauth
 import requests
@@ -6,31 +6,75 @@ import time
 import urlparse
 
 
-class GoodreadsUser(object):
-    def __init__(self):
-        raise NotImplementedError
+class GoodreadsException(Exception):
+    pass
 
 
-class GoodreadsAuthor(object):
+class Bunch:
+    def __init__(self, **kwds):
+        self.__dict__.update(kwds)
 
-    def __init__(self):
-        raise NotImplementedError
+
+class GoodreadsUser(Bunch):
+
+    def __repr__(self):
+        return '<GoodreadsUser:%s:%s>' % (self.id, self.name)
 
     @classmethod
-    def from_small_element(cls, author):
-        return cls(**{
-            'id': author.id,
-            'name': author.name,
-            'image': author.image_url,
-            'small_image': author.small_image_url,
-            'link': author.link,
-            'average_rating': author.average_rating,
-            'ratings_count': author.ratings_count,
-            'text_reviews_count': author.text_reviews_count,
-            })
+    def from_object(cls, o):
+        u = cls(
+            id=o.id.text,
+            name=o.name.text,
+            link=o.link.text,
+        )
+
+        u.location = o.location.text
+        u.image = o.image_url.text
+        u.small_image = o.small_image_url.text
+
+        u.joined = o.joined.text
+        u.last_active = o.last_active.text
+
+        u.about = o.about.text
+        u.age = o.age.text
+        try:
+            u.favorite_authors = [GoodreadsAuthor.from_object(a.author) for a in o.favorite_authors]
+        except AttributeError:
+            u.favorite_authors = None
+# TODO: favorite books not working on api end?
+#        u.favorite_books = [GoodreadsBook.from_object(b) for b in o.favorite_books]
+        u.friends_count = o.friends_count.text
+        u.gender = o.gender.text
+        u.groups_count = o.groups_count.text
+        u.interests = o.interests.text
+        u.reviews_count = o.reviews_count.text
+        u.reviews_rss_url = o.reviews_rss_url.text
+
+        return u
+
+    @classmethod
+    def from_auth_user_object(cls, o):
+        return cls(
+            id=o.attrib['id'],
+            name=o.name.text,
+            link=o.link.text
+        )
 
 
-class GoodreadsSeries(object):
+class GoodreadsAuthor(Bunch):
+
+    def __repr__(self):
+        return '<GoodreadsAuthor:%s:%s>' % (self.id, self.name)
+
+    @classmethod
+    def from_object(cls, o):
+        return cls(
+            id=o.id.text,
+            name=o.name.text
+        )
+
+
+class GoodreadsSeries(Bunch):
 
     def __init__(self):
         raise NotImplementedError
@@ -56,29 +100,11 @@ class GoodreadsSeries(object):
         # </series>
 
 
-class GoodreadsWork(object):
-
-    def __init__(self, *args, **kwargs):
-        self.id = kwargs.get('id', None)
-        self.title = kwargs.get('title', None)
-        self.media_type = kwargs.get('media_type', None)
-        self.publication_day = kwargs.get('publication_day', None)
-        self.publication_month = kwargs.get('publication_month', None)
-        self.publication_year = kwargs.get('publication_year', None)
-        self.language_id = kwargs.get('language_id', None)
-        self.best_book_id = kwargs.get('best_book_id', None)
-        self.books_count = kwargs.get('books_count', None)
-        self.default_chaptering_book_id = kwargs.get('default_chaptering_book_id', None)
-        self.desc_user_id = kwargs.get('desc_user_id', None)
-        self.rating_dist = kwargs.get('rating_dist', None)
-        self.ratings_count = kwargs.get('ratings_count', None)
-        self.ratings_sum = kwargs.get('ratings_sum', None)
-        self.reviews_count = kwargs.get('reviews_count', None)
-        self.text_reviews_count = kwargs.get('text_reviews_count', None)
+class GoodreadsWork(Bunch):
 
     @classmethod
-    def from_element(cls, work):
-        cls(**{
+    def from_object(cls, work):
+        return cls(**{
             'id': work.id,
             'title': work.title,
             'media_type': work.media_type,
@@ -95,89 +121,64 @@ class GoodreadsWork(object):
             'ratings_sum': work.ratings_sum,
             'reviews_count': work.reviews_count,
             'text_reviews_count': work.text_reviews_count,
-            })
+        })
 
 
-class GoodreadsBook(object):
-
-    def __init__(self, *args, **kwargs):
-        self.id = kwargs.get('id', None)
-        self.title = kwargs.get('title', None)
-        self.authors = kwargs.get('authors', None)
-        self.publication_year = kwargs.get('publication_year', None)
-        self.publication_month = kwargs.get('publication_month', None)
-        self.publication_day = kwargs.get('publication_day', None)
-        self.publisher = kwargs.get('publisher', None)
-        self.language_code = kwargs.get('language_code', None)
-        self.num_pages = kwargs.get('num_pages', None)
-        self.format = kwargs.get('format', None)
-        self.edition_information = kwargs.get('edition_information', None)
-        self.is_ebook = kwargs.get('is_ebook', None)
-
-        self.image_url = kwargs.get('image_url', None)
-        self.small_image_url = kwargs.get('small_image_url', None)
-        self.url = kwargs.get('url', None)
-        self.link = kwargs.get('link', None)
-
-        self.description = kwargs.get('description', None)
-        self.average_rating = kwargs.get('average_rating', None)
-        self.ratings_count = kwargs.get('ratings_count', None)
-        self.text_reviews_count = kwargs.get('text_reviews_count', None)
-        self.reviews_widget = kwargs.get('reviews_widget', None)
-        self.popular_shelves = kwargs.get('popular_shelves', None)
-        self.book_links = kwargs.get('book_links', None)
-
-        self.isbn = kwargs.get('isbn', None)
-        self.isbn13 = kwargs.get('isbn13', None)
-        self.asin = kwargs.get('asin', None)
-
-        self.series = kwargs.get('series', None)
+class GoodreadsBook(Bunch):
 
     def __repr__(self):
-        return '<GoodreadsBook: %s.%s>' % (self.id, self.title)
+        return '<GoodreadsBook:%s:%s>' % (self.id, self.title)
 
     @classmethod
-    def from_element(cls, book):
-        b = cls.from_small_element(book)
-        b.publication_year = book.publication_year
-        b.publication_month = book.publication_month
-        b.publication_day = book.publication_day
-        b.language_code = book.language_code
-        b.edition_information = book.edition_information
-        b.is_ebook = book.is_ebook
-        b.small_image_url = book.small_image_url
-        b.url = book.url
-        b.link = book.link
-        b.description = book.description
-        b.average_rating = book.average_rating
-        b.ratings_count = book.ratings_count
-        b.text_reviews_count = book.text_reviews_count
-        b.reviews_widget = book.reviews_widget
-        b.popular_shelves = [(s.attrib['name'], s.attrib['count']) for s in book.popular_shelves.iterate_children()]
-        b.book_links = [{'id': l.id, 'name': l.name, 'link': l.link} for l in book.book_links.iterate_children()]
-        b.isbn13 = book.isbn13
-        b.asin = book.asin
-        b.series = [{'id': sw.id, 'position': sw.user_position, 'series': GoodreadsSeries.from_element(sw.series)} for sw in book.series_works.iterate_children()]
-        b.similar_books = [cls.from_small_element(sb) for sb in book.similar_books.iterate_children()]
+    def from_object(cls, o):
+        return cls(
+            id=o.id.text,
+            title=o.title.text,
+            link=o.url.text
+        )
 
-        return b
+#    @classmethod
+#    def from_element(cls, book):
+#        b = cls.from_small_element(book)
+#        b.publication_year = book.publication_year
+#        b.publication_month = book.publication_month
+#        b.publication_day = book.publication_day
+#        b.language_code = book.language_code
+#        b.edition_information = book.edition_information
+#        b.is_ebook = book.is_ebook
+#        b.small_image_url = book.small_image_url
+#        b.url = book.url
+#        b.link = book.link
+#        b.description = book.description
+#        b.average_rating = book.average_rating
+#        b.ratings_count = book.ratings_count
+#        b.text_reviews_count = book.text_reviews_count
+#        b.reviews_widget = book.reviews_widget
+#        b.popular_shelves = [(s.attrib['name'], s.attrib['count']) for s in book.popular_shelves.iterate_children()]
+#        b.book_links = [{'id': l.id, 'name': l.name, 'link': l.link} for l in book.book_links.iterate_children()]
+#        b.isbn13 = book.isbn13
+#        b.asin = book.asin
+#        b.series = [{'id': sw.id, 'position': sw.user_position, 'series': GoodreadsSeries.from_element(sw.series)} for sw in book.series_works.iterate_children()]
+#        b.similar_books = [cls.from_small_element(sb) for sb in book.similar_books.iterate_children()]
+#
+#        return b
+#
+#    @classmethod
+#    def from_small_element(cls, book):
+#        return cls(**{
+#            'id': book.id,
+#            'title': book.title,
+#            'authors': [GoodreadsAuthor.from_element(author) for author in book.authors.iterchildren()],
+#            'format': book.format,
+#            'pages': book.num_pages,
+#            'date': book.published,
+#            'publisher': book.publisher,
+#            'image': book.image_url,
+#            'isbn': book.isbn,
+#            })
 
-    @classmethod
-    def from_small_element(cls, book):
-        return cls(**{
-            'id': book.id,
-            'title': book.title,
-            'authors': [GoodreadsAuthor.from_element(author) for author in book.authors.iterchildren()],
-            'format': book.format,
-            'pages': book.num_pages,
-            'date': book.published,
-            'publisher': book.publisher,
-            'image': book.image_url,
-            'isbn': book.isbn,
-            })
 
-
-class GoodreadsShelf(object):
+class GoodreadsShelf(Bunch):
     def __init__(self):
         raise NotImplementedError
 
@@ -198,22 +199,47 @@ class GoodreadsShelf(object):
 
 class Goodreads(object):
 
-    base_url = 'http://www.goodreads.com'
+    base_url = 'http://www.goodreads.com'  # no slash
 
     def __init__(self, developer_key=None, developer_secret=None, user_token=None, user_secret=None):
-        self.developer_key = developer_key
-        self.developer_secret = developer_secret
-        self.user_token = user_token
-        self.user_secret = user_secret
 
-        if self.developer_key and self.developer_secret:
-            self.consumer = oauth.Consumer(key=self.developer_key, secret=self.developer_secret)
+        if developer_key and developer_secret:
+            self.set_developer(developer_key, developer_secret)
+            if not (user_token and user_secret):
+                self.client = oauth.Client(self.consumer)
 
-        if self.user_token and self.user_secret:
-            self.token = oauth.Token(self.user_token, self.user_secret)
-            self.client = oauth.Client(self.consumer, self.token)
+        else:
+            self.developer = False
 
-        self.last_request = time.time()
+        if user_token and user_secret:
+            self.set_oauth_user(user_token, user_secret)
+        else:
+            self.oauth = False
+
+        self.last_request = time.time() - 1
+        self.client.follow_redirects = False
+
+    def set_developer(self, key, secret):
+        self.developer_key = key
+        self.developer_secret = secret
+        self.consumer = oauth.Consumer(key=self.developer_key, secret=self.developer_secret)
+        self.developer = True
+
+    def developer_check(self):
+        if not self.developer:
+            raise GoodreadsException('Operation requires developer api keys; not provided')
+
+    def set_oauth_user(self, token, secret):
+        self.developer_check()
+        self.user_token = token
+        self.user_secret = secret
+        self.token = oauth.Token(self.user_token, self.user_secret)
+        self.client = oauth.Client(self.consumer, self.token)
+        self.oauth = True
+
+    def oauth_check(self):
+        if not self.oauth:
+            raise GoodreadsException('Operation requires OAuth; not provided')
 
     # HTTP helpers
 
@@ -231,28 +257,36 @@ class Goodreads(object):
         return requests.post('%s/%s' % (self.base_url, url), data)  # TODO: Bad response
 
     def dev_get(self, url, data):
+        self.developer_check()
         data.update(key=self.developer_key)
-        return self.get(self, url, data)
+        return self.get(url, data)
 
     def dev_post(self, url, data):
+        self.developer_check()
         data.update(key=self.developer_key)
-        return self.post(self, url, data)
+        return self.post(url, data)
+
+    def client_request(self, method, url, data={}, headers={}):
+        self.oauth_check()
+        self.wait()
+        response, content = self.client.request(
+            uri='%s/%s' % (self.base_url, url),
+            method=method,
+            body=urlencode(data),
+            headers=headers)  # TODO: Bad response
+        return content
 
     def client_get(self, url, data={}, headers={}):
-        self.wait()
-        response, content = self.client.request('%s/%s' % (self.base_url, url), 'GET', urlencode(data), headers)  # TODO: Bad response
-        return content
+        return self.client_request('GET', url, data, headers)
 
     def client_post(self, url, data={}, headers={}):
-        self.wait()
-        response, content = self.client.request('%s/%s' % (self.base_url, url), 'POST', urlencode(data), headers)  # TODO: Bad response
-        return content
+        return self.client_request('POST', url, data, headers)
 
-    def client_put(self):
-        raise NotImplementedError
+    def client_put(self, url, data={}, headers={}):
+        return self.client_request('PUT', url, data, headers)
 
-    def client_delete(self):
-        raise NotImplementedError
+    def client_delete(self, url, data={}, headers={}):
+        return self.client_request('DELETE', url, data, headers)
 
     # OAuth
 
@@ -265,13 +299,14 @@ class Goodreads(object):
 
     def oauth_retrieve_token(self):
         token = oauth.Token(self.request_token['oauth_token'], self.request_token['oauth_token_secret'])
-        client = oauth.Client(self.oauth_consumer, token)
+        client = oauth.Client(self.consumer, token)
         response, content = client.request('%s/oauth/access_token' % self.base_url, 'POST')
         if response['status'] != '200':
             raise Exception('Invalid response: %s' % response['status'])
         access_token = dict(urlparse.parse_qsl(content))
         self.token = oauth.Token(access_token['oauth_token'], access_token['oauth_token_secret'])
         self.client = oauth.Client(self.consumer, self.token)
+        return self.token
 
 ################ API #################
 # http://www.goodreads.com/api
@@ -282,54 +317,82 @@ class Goodreads(object):
         '''
         Get info about a member by id or username: http://www.goodreads.com/api#user.show
         '''
-        raise NotImplementedError
-        self.dev_get('user/show/16193727.xml')
-        # Parameters:     key: Developer key (required).    id: Goodreads user id.    username: Goodreads user name (not first name). Usernames are optional on Goodreads.
+        if not (user_id or username):
+            raise GoodreadsException('User id or username required')
+        r = self.dev_get('user/show/', {'id': user_id, 'username': username})
+        return GoodreadsUser.from_object(object_from_string(r.content).user)
 
     def auth_user(self,):
         '''
          Get id of user who authorized OAuth: http://www.goodreads.com/api#auth.user
         '''
         xml = self.client_get('api/auth_user')
-        u = objectify.fromstring(xml)  # @UndefinedVariable
-        return {'id': u.user.attrib['id'], 'name': u.user.name, 'link': u.user.link}
+        return GoodreadsUser.from_auth_user_object(object_from_string(xml).user)
 
     def user_notifications(self,):
         '''
         See the current user's notifications: http://www.goodreads.com/api#notifications
         '''
-        raise NotImplementedError
-        self.client_get('/notifications?format=xml')
-        # Parameters:     page: page number (optional, default 1)
+        xml = self.client_get('notifications?format=xml')
+        # TODO: Paging:  Parameters:     page: page number (optional, default 1)
+        o = object_from_string(xml)
+        try:
+            return [
+                Bunch(**{
+                    'created': n.created_at,  # TODO: Delorean doesn't understand this format
+                    'new': n.new.pyval,
+                    'html': n.body.html.text
+                })
+                for n in o.notifications.notification
+            ]
+        except AttributeError:
+            return None
 
-    def user_compare(self,):
+    def user_compare(self, other_user_id):
         '''
         Compare books with another member: http://www.goodreads.com/api#user.compare
         '''
-        raise NotImplementedError
-        self.client_get('user/compare/1.xml')
-        # Parameters:     id: Goodreads user_id you want to compare books to
+        xml = self.client_get('user/compare/1.xml', {'id': other_user_id})
+        o = object_from_string(xml)
+        return Bunch(**{
+            'common': o.compare.common_count,
+            'not_common': o.compare.not_in_common,
+            'my-percent': o.compare.your_library_percent,
+            'my-total': o.compare.your_total_books_count,
+            'their-percent': o.compare.their_library_percent,
+            'their-total': o.compare.their_total_books_count,
+            'books': [Bunch(**{
+                'book': GoodreadsBook.from_object(r.book),
+                'my-rating': r.your_review.rating,
+                'my-review': r.your_review.text,
+                'their-rating': r.their_review.rating,
+                'their-review': r.their_review.text,
+            }) for r in o.compare.reviews.review],
+        })
 
     # User Followers
-#    def user_followers(self,):
-#        '''
-#        Get a user's followers.
-#
-#        Get an xml file with the given user's followers.
-#        '''
-#
-#        self.get('user_followings.xml?id=USER_ID')
-#        # Parameters:     key: Developer key (required).    id: Goodreads user_id    page: 1-N (optional, default 1)
-#
-#    def user_following(self,):
-#        '''
-#        Get people a user is following.
-#
-#        Get an xml file with people the given user is following.
-#        '''
-#
-#        self.get('user_followings/followings.xml?id=USER_ID')
-#        # Parameters:     key: Developer key (required).    id: Goodreads user_id    page: 1-N (optional, default 1)
+    def user_followers(self, user_id):
+        '''
+        Get a user's followers.
+
+        Get an xml file with the given user's followers.
+        '''
+
+        # TODO: Paging: # Parameters:     key: Developer key (required).    id: Goodreads user_id    page: 1-N (optional, default 1)
+        # 302 with OATH, 401 with dev
+        xml = self.client_get('user/%s/following' % user_id, {'id': user_id, 'format': 'xml'})
+        o = object_from_string(xml)
+        pass
+
+    def user_following(self,):
+        '''
+        Get people a user is following.
+
+        Get an xml file with people the given user is following.
+        '''
+
+        self.get('user_followings/followings.xml?id=USER_ID')
+        # Parameters:     key: Developer key (required).    id: Goodreads user_id    page: 1-N (optional, default 1)
 #
 #    def followers_create(self,):
 #        '''
