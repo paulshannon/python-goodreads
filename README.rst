@@ -4,7 +4,7 @@ Goodreads
 
 .. image:: https://badge.fury.io/py/goodreads.png
     :target: http://badge.fury.io/py/goodreads
-    
+
 .. image:: https://travis-ci.org/paulshannon/goodreads.png?branch=master
         :target: https://travis-ci.org/paulshannon/goodreads
 
@@ -20,4 +20,4 @@ A Python wrapper for the goodreads.com api
 Features
 --------
 
-* TODO
+* Coming soon
