@@ -18,17 +18,17 @@ readme = open('README.rst').read()
 history = open('HISTORY.rst').read().replace('.. :changelog:', '')
 
 setup(
-    name='goodreads',
+    name='Goodreads',
     version='0.1.0',
     description='A Python wrapper for the goodreads.com api',
     long_description=readme + '\n\n' + history,
     author='Paul Shannon',
     author_email='paul@paulshannon.ca',
-    url='https://github.com/paulshannon/goodreads',
+    url='https://github.com/paulshannon/python-goodreads',
     packages=[
-        'goodreads',
+        'Goodreads',
     ],
-    package_dir={'goodreads': 'goodreads'},
+    package_dir={'Goodreads': 'goodreads'},
     include_package_data=True,
     install_requires=['oauth2', 'requests', 'lxml'],
     license="BSD",
@@ -42,8 +42,6 @@ setup(
         "Programming Language :: Python :: 2",
         'Programming Language :: Python :: 2.6',
         'Programming Language :: Python :: 2.7',
-        'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.3',
     ],
     test_suite='tests',
 )

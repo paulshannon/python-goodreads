@@ -31,9 +31,8 @@ User Authorization
 	print 'You need to save key: \'%s\' and secret: \'%s\'' % (token.key, token.secret)
 
 
-Author
+Author::
 --------
-::
 	from config import DEVELOPER_KEY, DEVELOPER_SECRET, AUTHORS
 	from goodreads import Goodreads
 	import pprint

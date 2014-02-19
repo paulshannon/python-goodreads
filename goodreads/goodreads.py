@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from lxml.objectify import fromstring as object_from_string  # @UnresolvedImport
+from lxml.objectify import fromstring as object_from_string
 from urllib import urlencode
 import oauth2 as oauth
 import requests
@@ -325,7 +325,7 @@ class Goodreads(object):
         r = self.dev_get('user/show/', {'id': user_id, 'username': username})
         return GoodreadsUser.from_object(object_from_string(r.content).user)
 
-    def auth_user(self,):
+    def auth_user(self):
         '''
          Get id of user who authorized OAuth: http://www.goodreads.com/api#auth.user
         '''
@@ -383,9 +383,9 @@ class Goodreads(object):
 
         # TODO: Paging: # Parameters:     key: Developer key (required).    id: Goodreads user_id    page: 1-N (optional, default 1)
         # 302 with OATH, 401 with dev
-        xml = self.client_get('user/%s/following' % user_id, {'id': user_id, 'format': 'xml'})
-        o = object_from_string(xml)
-        pass
+#         xml = self.client_get('user/%s/following' % user_id, {'id': user_id, 'format': 'xml'})
+#         o = object_from_string(xml)
+#         pass
 
     def user_following(self,):
         '''
@@ -484,9 +484,9 @@ class Goodreads(object):
         Get info about an author by id: http://www.goodreads.com/api#author.show
         '''
         raise NotImplementedError
-        response = self.dev_get('author/show.xml', {'id': author_id})
-        author_show = objectify.fromstring(response.content)  # @UndefinedVariable
-        books = [self.book_from_element(book) for book in author_show.author.books.iterchildren()]
+#         response = self.dev_get('author/show.xml', {'id': author_id})
+#         author_show = objectify.fromstring(response.content)  # @UndefinedVariable
+#         books = [self.book_from_element(book) for book in author_show.author.books.iterchildren()]
 
     def author_search(self, name):
         '''
