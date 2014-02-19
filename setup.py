@@ -19,7 +19,7 @@ history = open('HISTORY.rst').read().replace('.. :changelog:', '')
 
 setup(
     name='Goodreads',
-    version='0.1.1',
+    version='0.1.2',
     description='A Python wrapper for the goodreads.com api',
     long_description=readme + '\n\n' + history,
     author='Paul Shannon',
