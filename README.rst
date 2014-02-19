@@ -6,7 +6,7 @@ Goodreads
     :target: http://badge.fury.io/py/goodreads
 
 .. image:: https://travis-ci.org/paulshannon/goodreads.png?branch=master
-        :target: https://travis-ci.org/paulshannon/goodreads
+        :target: https://travis-ci.org/paulshannon/python-goodreads
 
 .. image:: https://pypip.in/d/goodreads/badge.png
         :target: https://crate.io/packages/goodreads?version=latest
