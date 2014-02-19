@@ -5,7 +5,7 @@ Goodreads
 .. image:: https://badge.fury.io/py/Goodreads.png
     :target: http://badge.fury.io/py/Goodreads
     :alt: Recent Version
-    
+
 .. image:: https://pypip.in/d/Goodreads/badge.png
     :target: https://pypi.python.org/pypi/Goodreads/
     :alt: Downloads
@@ -24,8 +24,9 @@ Goodreads
 
 A Python wrapper for the goodreads.com api
 
+* Documentation: http://python-goodreads.rtfd.org/
+* Code: https://github.com/paulshannon/python-goodreads
 * Free software: BSD license
-* Documentation: http://python-goodreads.rtfd.org/.
 
 Features
 --------
