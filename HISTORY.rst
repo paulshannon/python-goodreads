@@ -2,6 +2,11 @@
 
 History
 -------
+0.1.1 (2014-02-19)
+++++++++++++++++++
+
+* made all methods visible
+	* raises NotImplementedError
 
 0.1.1 (2014-02-18)
 ++++++++++++++++++
