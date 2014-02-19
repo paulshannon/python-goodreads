@@ -10,9 +10,8 @@ To use Goodreads in a project::
 Examples
 ========
 
-User Authorization
---------
-::
+User Authorization::
+
 	from config import DEVELOPER_KEY, DEVELOPER_SECRET
 	from goodreads import Goodreads
 
@@ -32,7 +31,7 @@ User Authorization
 
 
 Author::
---------
+
 	from config import DEVELOPER_KEY, DEVELOPER_SECRET, AUTHORS
 	from goodreads import Goodreads
 	import pprint
@@ -46,9 +45,8 @@ Author::
 	for book in g.author_books(author_id):
 	    pprint.pprint(book)
 
-User
----------
-::
+User::
+
 	from config import DEVELOPER_KEY, DEVELOPER_SECRET, AUTH_USER, NON_AUTH_USER, SECONDARY_AUTH_USER
 	from goodreads import Goodreads
 
