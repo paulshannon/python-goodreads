@@ -2,12 +2,14 @@
 Goodreads
 ===============================
 
+.. image:: https://travis-ci.org/paulshannon/python-goodreads.png?branch=master
+    :target: https://travis-ci.org/paulshannon/python-goodreads
+    :alt: Build Status
+        
 .. image:: https://badge.fury.io/py/Goodreads.png
     :target: http://badge.fury.io/py/Goodreads
-
-.. image:: https://travis-ci.org/paulshannon/python-goodreads.png?branch=master
-        :target: https://travis-ci.org/paulshannon/python-goodreads
-
+    :alt: Recent Version
+    
 .. image:: https://pypip.in/d/Goodreads/badge.png
     :target: https://pypi.python.org/pypi/Goodreads/
     :alt: Downloads
