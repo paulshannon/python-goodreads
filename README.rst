@@ -2,14 +2,15 @@
 Goodreads
 ===============================
 
-.. image:: https://badge.fury.io/py/goodreads.png
-    :target: http://badge.fury.io/py/goodreads
+.. image:: https://badge.fury.io/py/Goodreads.png
+    :target: http://badge.fury.io/py/Goodreads
 
-.. image:: https://travis-ci.org/paulshannon/goodreads.png?branch=master
+.. image:: https://travis-ci.org/paulshannon/python-goodreads.png?branch=master
         :target: https://travis-ci.org/paulshannon/python-goodreads
 
-.. image:: https://pypip.in/d/goodreads/badge.png
-        :target: https://crate.io/packages/goodreads?version=latest
+.. image:: https://pypip.in/d/Goodreads/badge.png
+    :target: https://pypi.python.org/pypi/Goodreads/
+    :alt: Downloads
 
 
 A Python wrapper for the goodreads.com api
