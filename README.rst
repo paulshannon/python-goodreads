@@ -15,7 +15,7 @@ Goodreads
 A Python wrapper for the goodreads.com api
 
 * Free software: BSD license
-* Documentation: http://goodreads.rtfd.org.
+* Documentation: http://python-goodreads.rtfd.org/.
 
 Features
 --------
