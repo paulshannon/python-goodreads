@@ -40,6 +40,9 @@ Goodreads could always use more documentation, whether as part of the
 official Goodreads docs, in docstrings, or even on the web in blog posts,
 articles, and such.
 
+Try and add/modify docstrings according to the Google-style docstrings:
+http://sphinxcontrib-napoleon.readthedocs.org/en/latest/
+
 Submit Feedback
 ~~~~~~~~~~~~~~~
 
@@ -109,3 +112,4 @@ Tips
 To run a subset of tests::
 
 	$ python -m unittest tests.test_goodreads
+

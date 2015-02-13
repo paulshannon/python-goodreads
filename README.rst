@@ -1,6 +1,6 @@
-===============================
+=========
 Goodreads
-===============================
+=========
 
 .. image:: https://badge.fury.io/py/Goodreads.png
     :target: http://badge.fury.io/py/Goodreads
@@ -19,8 +19,8 @@ Goodreads
     :alt: Dependency Status
 
 .. image:: https://coveralls.io/repos/paulshannon/python-goodreads/badge.png
-	:target: https://coveralls.io/r/paulshannon/python-goodreads
-	:alt: Test Coverage
+    :target: https://coveralls.io/r/paulshannon/python-goodreads
+    :alt: Test Coverage
 
 A Python wrapper for the goodreads.com api
 
