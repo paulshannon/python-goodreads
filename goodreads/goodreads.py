@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
-from lxml.objectify import fromstring as object_from_string
 from urllib import urlencode
-import oauth2 as oauth
-import requests
 import time
 import urlparse
+
+from lxml import etree
+import oauth2 as oauth
+import requests
 
 
 class GoodreadsException(Exception):
@@ -14,13 +14,11 @@ class GoodreadsException(Exception):
 
 
 class Bunch:
-
     def __init__(self, **kwds):
         self.__dict__.update(kwds)
 
 
 class GoodreadsUser(Bunch):
-
     def __repr__(self):
         return '<GoodreadsUser:%s:%s>' % (self.id, self.name)
 
@@ -68,7 +66,6 @@ class GoodreadsUser(Bunch):
 
 
 class GoodreadsAuthor(Bunch):
-
     def __repr__(self):
         return '<GoodreadsAuthor:%s:%s>' % (self.id, self.name)
 
@@ -81,33 +78,12 @@ class GoodreadsAuthor(Bunch):
 
 
 class GoodreadsSeries(Bunch):
-
-    def __init__(self):
+    def __init__(self, **kwds):
+        Bunch.__init__(self, **kwds)
         raise NotImplementedError
-
-        # <series>
-        # <id>62223</id>
-        # <title>
-        # <![CDATA[
-        #    Brian's Saga
-        # ]]>
-        # </title>
-        # <description>
-        # <![CDATA[
-        # ]]>
-        # </description>
-        # <note>
-        # <![CDATA[
-        # ]]>
-        # </note>
-        # <series_works_count>7</series_works_count>
-        # <primary_work_count>5</primary_work_count>
-        # <numbered>true</numbered>
-        # </series>
 
 
 class GoodreadsWork(Bunch):
-
     @classmethod
     def from_object(cls, work):
         return cls(**{
@@ -131,7 +107,6 @@ class GoodreadsWork(Bunch):
 
 
 class GoodreadsBook(Bunch):
-
     def __repr__(self):
         return '<GoodreadsBook:%s:%s>' % (self.id, self.title)
 
@@ -180,9 +155,7 @@ class GoodreadsBook(Bunch):
         return cls(**{
             'id': book.id,
             'title': book.title,
-            'authors': [GoodreadsAuthor.from_element(author)
-                        for author in book.authors.iterchildren(
-                        )],
+            'authors': [GoodreadsAuthor.from_element(author) for author in book.authors.iterchildren()],
             'format': book.format,
             'pages': book.num_pages,
             'date': book.published,
@@ -193,27 +166,13 @@ class GoodreadsBook(Bunch):
 
 
 class GoodreadsShelf(Bunch):
-
-    def __init__(self):
+    def __init__(self, **kwds):
+        Bunch.__init__(self, **kwds)
         raise NotImplementedError
 
-    #       book_count
-    #       description
-    #       display_fields
-    #       exclusive
-    #       featured
-    #       id
-    #       user_id
-    #       name
-    #       order
-    #       per_page
-    #       recommend_for
-    #       sort
-    #       sticky
 
-
+# noinspection PyUnreachableCode
 class Goodreads(object):
-
     base_url = 'http://www.goodreads.com'  # no slash
 
     def __init__(self, developer_key=None, developer_secret=None,
@@ -267,7 +226,9 @@ class Goodreads(object):
         if since < 1:
             time.sleep(1 - since)
 
-    def get(self, url, data):
+    def get(self, url, data=None):
+        if not data:
+            data = {}
         self.wait()
         return (
             requests.get(
@@ -275,7 +236,9 @@ class Goodreads(object):
                 (self.base_url, url), params=data)  # TODO: Bad response
         )
 
-    def post(self, url, data):
+    def post(self, url, data=None):
+        if not data:
+            data = {}
         self.wait()
         return (
             requests.post(
@@ -293,7 +256,11 @@ class Goodreads(object):
         data.update(key=self.developer_key)
         return self.post(url, data)
 
-    def client_request(self, method, url, data={}, headers={}):
+    def client_request(self, method, url, data=None, headers=None):
+        if not headers:
+            headers = {}
+        if not data:
+            data = {}
         self.oauth_check()
         self.wait()
         response, content = self.client.request(
@@ -303,16 +270,32 @@ class Goodreads(object):
             headers=headers)  # TODO: Bad response
         return content
 
-    def client_get(self, url, data={}, headers={}):
+    def client_get(self, url, data=None, headers=None):
+        if not headers:
+            headers = {}
+        if not data:
+            data = {}
         return self.client_request('GET', url, data, headers)
 
-    def client_post(self, url, data={}, headers={}):
+    def client_post(self, url, data=None, headers=None):
+        if not headers:
+            headers = {}
+        if not data:
+            data = {}
         return self.client_request('POST', url, data, headers)
 
-    def client_put(self, url, data={}, headers={}):
+    def client_put(self, url, data=None, headers=None):
+        if not headers:
+            headers = {}
+        if not data:
+            data = {}
         return self.client_request('PUT', url, data, headers)
 
-    def client_delete(self, url, data={}, headers={}):
+    def client_delete(self, url, data=None, headers=None):
+        if not headers:
+            headers = {}
+        if not data:
+            data = {}
         return self.client_request('DELETE', url, data, headers)
 
     # OAuth
@@ -347,39 +330,38 @@ class Goodreads(object):
         self.client = oauth.Client(self.consumer, self.token)
         return self.token
 
-################ API #################
-# http://www.goodreads.com/api
+    # ############### API #################
+    # http://www.goodreads.com/api
 
     def user(self, user_id=None, username=None):
-        '''
+        """
         Get info about a member by id or username: http://www.goodreads.com/api#user.show
-        '''
+        """
         if not (user_id or username):
             raise GoodreadsException('User id or username required')
         r = self.dev_get('user/show/', {'id': user_id, 'username': username})
-        return GoodreadsUser.from_object(object_from_string(r.content).user)
+        return GoodreadsUser.from_object(etree.fromstring(r.content).user)
 
     def auth_user(self):
-        '''
+        """
          Get id of user who authorized OAuth: http://www.goodreads.com/api#auth.user
-        '''
+        """
         xml = self.client_get('api/auth_user')
         return (
-            GoodreadsUser.from_auth_user_object(object_from_string(xml).user)
+            GoodreadsUser.from_auth_user_object(etree.fromstring(xml).user)
         )
 
-    def user_notifications(self,):
-        '''
+    def user_notifications(self, ):
+        """
         See the current user's notifications: http://www.goodreads.com/api#notifications
-        '''
+        """
         xml = self.client_get('notifications?format=xml')
         # TODO: Paging:  Parameters:     page: page number (optional, default
         # 1)
-        o = object_from_string(xml)
+        o = etree.fromstring(xml)
         try:
             return [
                 Bunch(**{
-                    # TODO: Delorean doesn't understand this format
                     'created': n.created_at,
                     'new': n.new.pyval,
                     'html': n.body.html.text
@@ -390,11 +372,11 @@ class Goodreads(object):
             return None
 
     def user_compare(self, other_user_id):
-        '''
+        """
         Compare books with another member: http://www.goodreads.com/api#user.compare
-        '''
+        """
         xml = self.client_get('user/compare/1.xml', {'id': other_user_id})
-        o = object_from_string(xml)
+        o = etree.fromstring(xml)
         return Bunch(**{
             'common': o.compare.common_count,
             'not_common': o.compare.not_in_common,
@@ -413,140 +395,143 @@ class Goodreads(object):
 
     # User Followers
     def user_followers(self, user_id):
-        '''
+        """
         Get a user's followers.
 
         Get an xml file with the given user's followers.
-        '''
+        """
         raise NotImplementedError
         # TODO: Paging: # Parameters:     key: Developer key (required).    id: Goodreads user_id    page: 1-N (optional, default 1)
         # 302 with OATH, 401 with dev
         xml = self.client_get(
             'user/%s/following' %
             user_id, {'id': user_id, 'format': 'xml'})
-        o = object_from_string(xml)
+        o = etree.fromstring(xml)
 
-    def user_following(self,):
-        '''
+    def user_following(self, ):
+        """
         Get people a user is following.
 
         Get an xml file with people the given user is following.
-        '''
+        """
 
         self.get('user_followings/followings.xml?id=USER_ID')
         # Parameters:     key: Developer key (required).    id: Goodreads
         # user_id    page: 1-N (optional, default 1)
 
     def followers_create(self, user_id):
-        '''
+        """
         Follow a user.
 
         Start following a user using OAuth. You'll need to You'll need to register your app (required).
-        '''
+        """
         raise NotImplementedError
         self.POST('user/USER_ID/followers?format=xml')
         # Parameters:     id: Goodreads user id of user to follow
 
     # User Friends
-    def user_friends(self,):
-        '''
+    def user_friends(self, ):
+        """
         Get a user's friends.
 
         Get an xml file with the given user's friends using OAuth.
-        '''
+        """
         raise NotImplementedError
         self.get('friend/user.xml')
-# Parameters:     id: Goodreads user_id (required)    page: 1-N (optional, default 1)    sort: first_name|date_added|last_online (optional)
-#
 
-    def friends_create(self,):
-        '''
+    # Parameters:     id: Goodreads user_id (required)    page: 1-N (optional, default 1)    sort: first_name|date_added|last_online (optional)
+    #
+
+    def friends_create(self, ):
+        """
         Add a friend.
 
         Sends a friend request to a user using OAuth. You'll need to register your app (required).
-        '''
+        """
         raise NotImplementedError
         self.POST('friend/add_as_friend.xml')
-# Parameters:     id: Goodreads user id for friend
 
-    def updates_friends(self,):
-        '''
+    # Parameters:     id: Goodreads user id for friend
+
+    def updates_friends(self, ):
+        """
         Get your friend updates.
 
         Get your friend updates (the same data you see on your homepage) using OAuth. You'll need to register your app (required).
-        '''
+        """
         raise NotImplementedError
         self.get('updates/friends.xml')
-# Parameters:     update: Type of update. Valid values are: books,
-# reviews, statuses. (optional, default all)    update_filter: Which
-# updates to show. Options are: friends (default - includes followers),
-# following, top_friends. (optional)    max_updates: The max limit of
-# updates. (optional)
 
-    def user_status_create(self,):
-        '''
+    # Parameters:     update: Type of update. Valid values are: books,
+    # reviews, statuses. (optional, default all)    update_filter: Which
+    # updates to show. Options are: friends (default - includes followers),
+    # following, top_friends. (optional)    max_updates: The max limit of
+    # updates. (optional)
+
+    def user_status_create(self, ):
+        """
         Update user status.
 
         Add status updates for members using OAuth. You'll need to register your app (required).
-        '''
+        """
         raise NotImplementedError
         self.POST('user_status.xml')
-# Parameters:     user_status[book_id]: id of the book being reviewed
-# (optional)    user_status[page]: page of the book (optional)
-# user_status[percent]: percent complete (use instead of page if
-# appropriate)    user_status[body]: status update (required, unless page
-# or percent is present, then it is optional)
 
-    def user_status_destroy(self,):
-        '''
+    # Parameters:     user_status[book_id]: id of the book being reviewed
+    # (optional)    user_status[page]: page of the book (optional)
+    # user_status[percent]: percent complete (use instead of page if
+    # appropriate)    user_status[body]: status update (required, unless page
+    # or percent is present, then it is optional)
+
+    def user_status_destroy(self, ):
+        """
         Delete user status.
 
         Delete a status update for a member using OAuth. You'll need to register your app (required).
-        '''
+        """
         raise NotImplementedError
         self.POST('user_status/destroy/USER_STATUS_ID?format=xml')
 
-    def user_status_show(self,):
-        '''
+    def user_status_show(self, ):
+        """
         Get a user status.
 
         Get information about a user status update.
-        '''
+        """
         raise NotImplementedError
         self.get('user_status/show/USER_STATUS_ID?format=xml&key=MY_KEY')
-# Parameters:     key: Developer key (required).    id: user status id
 
-    def user_status_index(self,):
-        '''
+    # Parameters:     key: Developer key (required).    id: user status id
+
+    def user_status_index(self, ):
+        """
         View user statuses.
 
         View most recent user statuses on the site.
-        '''
+        """
         raise NotImplementedError
         self.get('user_status.xml')
 
     def author(self, author_id):
-        '''
+        """
         Get info about an author by id: http://www.goodreads.com/api#author.show
-        '''
-        raise NotImplementedError
+        """
         response = self.dev_get('author/show.xml', {'id': author_id})
-        author_show = object_from_string(response.content)
-        books = [self.book_from_element(book)
-                 for book in author_show.author.books.iterchildren()]
+        xml = etree.fromstring(response.content)
+        books = [GoodreadsBook.from_element(book) for book in xml.author.books.iterchildren()]
 
     def author_search(self, name):
-        '''
+        """
         Find an author by name: http://www.goodreads.com/api#search.authors
-        '''
+        """
         raise NotImplementedError
         self.dev_get('api/author_url/<ID>')
         # Parameters:     id: Author name    key: Developer key (required).
 
     def author_books(self, author_id, limit=None):
-        '''
+        """
         Paginate an author's books: http://www.goodreads.com/api#author.books
-        '''
+        """
         page = 1
         counter = 0
         while True:
@@ -555,7 +540,7 @@ class Goodreads(object):
                 {'id': author_id,
                  'page': page})
             # @UndefinedVariable
-            author_list = object_from_string(response.content)
+            author_list = etree.fromstring(response.content)
             for book in author_list.author.books.iterchildren():
                 yield self.book_from_element(book)
                 counter += 1
@@ -566,40 +551,41 @@ class Goodreads(object):
             else:
                 return
 
-    def fanship_create(self,):
-        '''
+    def fanship_create(self, ):
+        """
         Become fan of an author.
 
         Make the signed-in user become a fan of an author using OAuth. You'll need to register your app (required).
-        '''
+        """
         raise NotImplementedError
         self.POST('fanships?format=xml')
-# Parameters:     fanship[author_id]: id of the author (required)
 
-    def fanship_destroy(self,):
-        '''
+    # Parameters:     fanship[author_id]: id of the author (required)
+
+    def fanship_destroy(self, ):
+        """
         Stop being fan of an author.
 
         Stop being a fan of an author using OAuth. You'll need to register your app (required).
-        '''
+        """
         raise NotImplementedError
         self.DELETE('fanships/FANSHIP_ID?format=xml')
 
-    def fanship_show(self,):
-        '''
+    def fanship_show(self, ):
+        """
         Show fanship information.
 
         Get an XML file using OAuth describing the association between a user and an author. You'll need to register your app (required).
-        '''
+        """
         raise NotImplementedError
         self.get('fanships/show/FANSHIP_ID?format=xml')
 
     # Book
 
-    def book_search(self,):
-        '''
+    def book_search(self, ):
+        """
         Find books by title, author, or ISBN.
-        '''
+        """
         raise NotImplementedError
         self.dev_get('search.xml')
         # Parameters:     q: The query text to match against book title, author,
@@ -609,10 +595,10 @@ class Goodreads(object):
         # 'author', or 'genre' (default is 'all')
 
     def book(self, book_id):
-        '''
+        """
         Get the reviews for a book given a Goodreads book id: http://www.goodreads.com/api#book.show.
         XML responses also include shelves and book meta-data (title, author, et cetera).
-        '''
+        """
         raise NotImplementedError
         self.dev_get('book/show?format=FORMAT')
         # Parameters:     format: xml or json    key: Developer key (required).
@@ -621,9 +607,9 @@ class Goodreads(object):
         # particular rating (optional)
 
     def book_by_isbn(self, isbn):
-        '''
+        """
         Get the reviews for a book given an ISBN: http://www.goodreads.com/api#book.show_by_isbn
-        '''
+        """
         raise NotImplementedError
         self.dev_get('book/isbn?format=FORMAT&isbn=ISBN')
         # Parameters:     format: xml or json    callback: function to wrap JSON
@@ -635,9 +621,9 @@ class Goodreads(object):
     # Shelves
 
     def shelve_book(self, shelf_name, book_id, remove=False):
-        '''
+        """
         Add/remove a book to a shelf: http://www.goodreads.com/api#shelves.add_to_shelf
-        '''
+        """
         raise NotImplementedError
         data = {
             'name': shelf_name,
@@ -648,18 +634,18 @@ class Goodreads(object):
         self.client_post('shelf/add_to_shelf.xml')
 
     def shelf_list(self, user_id=None):
-        '''
+        """
         Get a user's shelves: http://www.goodreads.com/api#shelves.list
-        '''
+        """
         raise NotImplementedError
         self.dev_get(
             'shelf/list.xml',
             {"user_id": user_id if user_id else self.user_id})
 
-    def shelf_create(self,):
-        '''
+    def shelf_create(self, ):
+        """
         Add book shelf: http://www.goodreads.com/api#user_shelves.create
-        '''
+        """
         raise NotImplementedError
         self.client_post('user_shelves.xml')
         # Parameters:     user_shelf[name]: Name of the new shelf
@@ -669,16 +655,16 @@ class Goodreads(object):
         # default false)
 
     def shelf_destroy(self, shelf_id):
-        '''
+        """
         Delete book shelf: http://www.goodreads.com/api#user_shelves.destroy
-        '''
+        """
         raise NotImplementedError
         self.client_delete('user_shelves/destroy.xml?id=USER_SHELF_ID')
 
-    def shelf_update(self,):
-        '''
+    def shelf_update(self, ):
+        """
         Edit book shelf: http://www.goodreads.com/api#user_shelves.update
-        '''
+        """
         raise NotImplementedError
         self.client_put('user_shelves/update.xml?id=USER_SHELF_ID')
         # Parameters:     user_shelf[name]: Name of the new shelf
@@ -687,303 +673,322 @@ class Goodreads(object):
         # default false)    user_shelf[featured]: 'true' or 'false' (optional,
         # default false)
 
-    def comment_create(self,):
-        '''
+    def comment_create(self, ):
+        """
         Create a comment.
 
         Creates a new comment. You'll need to register your app (required).
-        '''
+        """
         raise NotImplementedError
         self.POST('comment.xml')
-# Parameters:     type: one of 'author_blog_post', 'book_news_post',
-# 'blog', 'chapter', 'comment', 'event_response', 'fanship', 'interview',
-# 'librarian_note', 'list', 'owned_book', 'photo', 'poll', 'poll_vote',
-# 'question', 'question_user_stat', 'quiz', 'quiz_score', 'rating',
-# 'recommendation', 'recommendation_request', 'review', 'topic', 'user',
-# 'user_challenge', 'user_list_vote', 'user_quote', 'user_list_challenge',
-# 'user_status', 'video'    id: Id of resource given as type param
-# comment[body]: This review was really insightful!
 
-    def comment_list(self,):
-        '''
+    # Parameters:     type: one of 'author_blog_post', 'book_news_post',
+    # 'blog', 'chapter', 'comment', 'event_response', 'fanship', 'interview',
+    # 'librarian_note', 'list', 'owned_book', 'photo', 'poll', 'poll_vote',
+    # 'question', 'question_user_stat', 'quiz', 'quiz_score', 'rating',
+    # 'recommendation', 'recommendation_request', 'review', 'topic', 'user',
+    # 'user_challenge', 'user_list_vote', 'user_quote', 'user_list_challenge',
+    # 'user_status', 'video'    id: Id of resource given as type param
+    # comment[body]: This review was really insightful!
+
+    def comment_list(self, ):
+        """
         List comments on a subject.
 
         Lists comments
-        '''
+        """
         raise NotImplementedError
         self.get('comment.xml')
-# Parameters:     type: one of 'author_blog_post', 'book_news_post',
-# 'blog', 'chapter', 'comment', 'event_response', 'fanship', 'interview',
-# 'librarian_note', 'list', 'owned_book', 'photo', 'poll', 'poll_vote',
-# 'question', 'question_user_stat', 'quiz', 'quiz_score', 'rating',
-# 'recommendation', 'recommendation_request', 'review', 'topic', 'user',
-# 'user_challenge', 'user_list_vote', 'user_quote', 'user_list_challenge',
-# 'user_status', 'video'    id: Id of resource given as type param
-# page: 1-N (optional, default 1)
 
-    def events_list(self,):
-        '''
+    # Parameters:     type: one of 'author_blog_post', 'book_news_post',
+    # 'blog', 'chapter', 'comment', 'event_response', 'fanship', 'interview',
+    # 'librarian_note', 'list', 'owned_book', 'photo', 'poll', 'poll_vote',
+    # 'question', 'question_user_stat', 'quiz', 'quiz_score', 'rating',
+    # 'recommendation', 'recommendation_request', 'review', 'topic', 'user',
+    # 'user_challenge', 'user_list_vote', 'user_quote', 'user_list_challenge',
+    # 'user_status', 'video'    id: Id of resource given as type param
+    # page: 1-N (optional, default 1)
+
+    def events_list(self, ):
+        """
         Events in your area.
 
         Shows events nearby the authenticating user or you can get a list of events near a location by passing lat/lng coordinates
-        '''
+        """
         raise NotImplementedError
         self.get('event.xml')
-# Parameters:     key: Developer key (required).    lat: Latitude
-# (optional)    lng: Longitude (optional)
 
-    def group_list(self,):
-        '''
+    # Parameters:     key: Developer key (required).    lat: Latitude
+    # (optional)    lng: Longitude (optional)
+
+    def group_list(self, ):
+        """
         List groups for a given user.
 
         Returns xml list of groups the user specified by id belongs to
-        '''
+        """
         raise NotImplementedError
         self.get('group/list/USER_ID.xml')
-# Parameters:     sort: One of 'my_activity', 'members', 'last_activity',
-# 'title' ('members' will sort by number of members in the group)    key:
-# Developer key (required).
 
-    def group_members(self,):
-        '''
+    # Parameters:     sort: One of 'my_activity', 'members', 'last_activity',
+    # 'title' ('members' will sort by number of members in the group)    key:
+    # Developer key (required).
+
+    def group_members(self, ):
+        """
         Return members of a particular group.
 
         Returns an XML list of members of the group
-        '''
+        """
         raise NotImplementedError
         self.get('group/members.xml?id=GROUP_ID')
-# Parameters:     sort: One of 'last_online', 'num_comments',
-# 'date_joined', 'num_books', 'first_name'    q: List of names to search
-# for, separating each name with a space character. Optional, will find
-# all members by default    page: Which page of results to show (default
-# 1)    key: Developer key (required).
 
-    def group_show(self,):
-        '''
+    # Parameters:     sort: One of 'last_online', 'num_comments',
+    # 'date_joined', 'num_books', 'first_name'    q: List of names to search
+    # for, separating each name with a space character. Optional, will find
+    # all members by default    page: Which page of results to show (default
+    # 1)    key: Developer key (required).
+
+    def group_show(self, ):
+        """
         Get info about a group by id.
 
         XML version of group/show
-        '''
+        """
         raise NotImplementedError
         self.get('group/show.xml?id=GROUP_ID')
-# Parameters:     sort: Field to sort topics by. One of 'comments_count',
-# 'title', 'updated_at', 'views'    order: 'a' for ascending, 'd' for
-# descending    key: Developer key (required).
 
-# Owned Books
-    def owned_books_create(self,):
-        '''
+    # Parameters:     sort: Field to sort topics by. One of 'comments_count',
+    # 'title', 'updated_at', 'views'    order: 'a' for ascending, 'd' for
+    # descending    key: Developer key (required).
+
+    # Owned Books
+    def owned_books_create(self, ):
+        """
         Add to books owned.
 
         Adds a book to user's list of owned books using OAuth. You'll need to register your app (required).
-        '''
+        """
         raise NotImplementedError
         self.POST('owned_books.xml')
-# Parameters:     owned_book[book_id]: id of the book (required)
-# owned_book[condition_code]: one of 10 (brand new), 20 (like new), 30
-# (very good), 40 (good), 50 (acceptable), 60 (poor)
-# owned_book[condition_description]: description of book's condition
-# owned_book[original_purchase_date]: when book was purchased
-# owned_book[original_purchase_location]: where this book was purchased
-# owned_book[unique_code]: BookCrossing id (BCID)
 
-    def owned_books_list(self,):
-        '''
+    # Parameters:     owned_book[book_id]: id of the book (required)
+    # owned_book[condition_code]: one of 10 (brand new), 20 (like new), 30
+    # (very good), 40 (good), 50 (acceptable), 60 (poor)
+    # owned_book[condition_description]: description of book's condition
+    # owned_book[original_purchase_date]: when book was purchased
+    # owned_book[original_purchase_location]: where this book was purchased
+    # owned_book[unique_code]: BookCrossing id (BCID)
+
+    def owned_books_list(self, ):
+        """
         List books owned by a user.
 
         Get an xml file with a list of owned books using OAuth. You'll need to register your app (required).
-        '''
+        """
         raise NotImplementedError
         self.get('owned_books/user?format=xml')
-# Parameters:     id: Goodreads user_id    page: 1-N (optional, default 1)
 
-    def owned_books_show(self,):
-        '''
+    # Parameters:     id: Goodreads user_id    page: 1-N (optional, default 1)
+
+    def owned_books_show(self, ):
+        """
         Show an owned book.
 
         Get an xml file describing an owned book using OAuth, including the current owner's user id (current_owner_id), it's BookCrossing ID (bcid), number of times traded, etc. OWNED_BOOK_ID is a unique identifier for the owned book (not a book_id) You'll need to register your app (required).
-        '''
+        """
         raise NotImplementedError
         self.get('owned_books/show.xml?id=OWNED_BOOK_ID')
 
-    def owned_books_update(self,):
-        '''
+    def owned_books_update(self, ):
+        """
         Update an owned book.
 
         Updates a book a user owns using OAuth. You'll need to register your app (required).
-        '''
+        """
         raise NotImplementedError
         self.PUT('owned_books/update.xml?id=ID')
-# Parameters:     id: id of the owned book record    owned_book[book_id]:
-# id of the book (required)    owned_book[condition_code]: one of 10
-# (brand new), 20 (like new), 30 (very good), 40 (good), 50 (acceptable),
-# 60 (poor), (optional)    owned_book[condition_description]: description
-# of book's condition (optional)    owned_book[original_purchase_date]:
-# when book was purchased (optional)
-# owned_book[original_purchase_location]: where this book was purchased
-# (optional)    owned_book[unique_code]: BookCrossing id (BCID) (optional)
 
-# Reviews
-    def ratings_create(self,):
-        '''
+    # Parameters:     id: id of the owned book record    owned_book[book_id]:
+    # id of the book (required)    owned_book[condition_code]: one of 10
+    # (brand new), 20 (like new), 30 (very good), 40 (good), 50 (acceptable),
+    # 60 (poor), (optional)    owned_book[condition_description]: description
+    # of book's condition (optional)    owned_book[original_purchase_date]:
+    # when book was purchased (optional)
+    # owned_book[original_purchase_location]: where this book was purchased
+    # (optional)    owned_book[unique_code]: BookCrossing id (BCID) (optional)
+
+    # Reviews
+    def ratings_create(self, ):
+        """
         Rate a review.
 
         Rate a review (like or dislike) using OAuth. You'll need to register your app (required).
-        '''
+        """
         raise NotImplementedError
         self.POST('rating/new_review?format=xml')
-# Parameters:     resource_id: id of the review to rate    rating: 1
-# (like) or 0 (unlike)
 
-    def review_create(self,):
-        '''
+    # Parameters:     resource_id: id of the review to rate    rating: 1
+    # (like) or 0 (unlike)
+
+    def review_create(self, ):
+        """
         Add review.
 
         Add book reviews for members using OAuth. You'll need to register your app (required).
-        '''
+        """
         raise NotImplementedError
         self.POST('review.xml')
-# Parameters: (self,):
-# Book_id: Goodreads book_id (required)    review[review]: Text of the
-# review (optional)    review[rating]: Rating (0-5) (optional, default is
-# 0 (No rating))    review[read_at]: Date (YYYY-MM-DD format, e.g.
-# 2008-02-01) (optional)    shelf: read|currently-reading|to-read|<USER
-# SHELF NAME> (optional, must exist, see: shelves.list)
 
-    def review_destroy(self,):
-        '''
+    # Parameters: (self,):
+    # Book_id: Goodreads book_id (required)    review[review]: Text of the
+    # review (optional)    review[rating]: Rating (0-5) (optional, default is
+    # 0 (No rating))    review[read_at]: Date (YYYY-MM-DD format, e.g.
+    # 2008-02-01) (optional)    shelf: read|currently-reading|to-read|<USER
+    # SHELF NAME> (optional, must exist, see: shelves.list)
+
+    def review_destroy(self, ):
+        """
         Destroy a review.
 
         Delete book reviews for members using OAuth. You'll need to register your app (required).
-        '''
+        """
         raise NotImplementedError
         self.POST('/review/destroy.xml')
-# Parameters: (self,): Book_id: Goodreads book_id (required)
 
-    def reviews_list(self,):
-        '''
+    # Parameters: (self,): Book_id: Goodreads book_id (required)
+
+    def reviews_list(self, ):
+        """
         Get the books on a members shelf.
 
         Get the books on a members shelf. Customize the feed with the below variables. Viewing members with profiles who have set them as visible to members only or just their friends requires using OAuth.
-        '''
+        """
         raise NotImplementedError
         self.get('review/list?format=xml&v=2')
-# Parameters:     v: 2    id: Goodreads id of the user    shelf: read, currently-reading, to-read, etc. (optional)    sort: title, author, cover, rating, year_pub, date_pub, date_pub_edition, date_started, date_read, date_updated, date_added, recommender, avg_rating, num_ratings, review, read_count, votes, random, comments, notes, isbn, isbn13, asin, num_pages, format, position, shelves, owned, date_purchased, purchase_location, condition (optional)    search[query]: query text to match against member's books (optional)    order: a, d (optional)    page: 1-N (optional)    per_page: 1-200 (optional)    key: Developer key (required).
-#
 
-    def review_recent_reviews(self,):
-        '''
+    # Parameters:     v: 2    id: Goodreads id of the user    shelf: read, currently-reading, to-read, etc. (optional)    sort: title, author, cover, rating, year_pub, date_pub, date_pub_edition, date_started, date_read, date_updated, date_added, recommender, avg_rating, num_ratings, review, read_count, votes, random, comments, notes, isbn, isbn13, asin, num_pages, format, position, shelves, owned, date_purchased, purchase_location, condition (optional)    search[query]: query text to match against member's books (optional)    order: a, d (optional)    page: 1-N (optional)    per_page: 1-200 (optional)    key: Developer key (required).
+    #
+
+    def review_recent_reviews(self, ):
+        """
         Recent reviews from all members.
 
         Get an xml file with the most recently added reviews from all members.
-        '''
+        """
         raise NotImplementedError
         self.get('review/recent_reviews.xml')
-# Parameters:     key: Developer key (required).
 
-    def review_show(self,):
-        '''
+    # Parameters:     key: Developer key (required).
+
+    def review_show(self, ):
+        """
         Get a review.
 
         Get an xml file that contains the review and rating
-        '''
+        """
         raise NotImplementedError
         self.get('review/show.xml')
-# Parameters:     key: Developer key (required).    id: id of the review
-# page: 1-N. The page number of comments. (default 1, optional)
 
-    def review_show_by_user_and_book(self,):
-        '''
+    # Parameters:     key: Developer key (required).    id: id of the review
+    # page: 1-N. The page number of comments. (default 1, optional)
+
+    def review_show_by_user_and_book(self, ):
+        """
         Get a user's review for a given book.
 
         Get an xml file that contains the review and rating for the specified book and user
-        '''
+        """
         raise NotImplementedError
         self.get('review/show_by_user_and_book.xml')
-# Parameters:     key: Developer key (required).    user_id: id of the user(self,):
-# Book_id: id of the book    include_review_on_work: 'true' or 'false'
-# indicating whether to return a review for another book in the same work
-# if review not found for the specified book (default 'false', optional)
 
-    def review_update(self,):
-        '''
+    # Parameters:     key: Developer key (required).    user_id: id of the user(self,):
+    # Book_id: id of the book    include_review_on_work: 'true' or 'false'
+    # indicating whether to return a review for another book in the same work
+    # if review not found for the specified book (default 'false', optional)
+
+    def review_update(self, ):
+        """
         Update book reviews.
 
         Update book reviews for members using OAuth. You'll need to register your app (required). This method must be called with a PUT request and the final, numeric portion of the URL is the review ID.
-        '''
+        """
         raise NotImplementedError
         self.PUT('review/<ID>.xml')
-# Parameters:     review[review]: Text of the review (optional)
-# review[rating]: Rating (0-5) (optional, 0 means no rating)
-# review[read_at]: Date (optional, YYYY-MM-DD format, e.g. 2008-02-01)
 
-    def book_review_counts(self,):
-        '''
+    # Parameters:     review[review]: Text of the review (optional)
+    # review[rating]: Rating (0-5) (optional, 0 means no rating)
+    # review[read_at]: Date (optional, YYYY-MM-DD format, e.g. 2008-02-01)
+
+    def book_review_counts(self, ):
+        """
         Get review statistics given a list of ISBNs.
 
         Get review statistics for books given a list of ISBNs. ISBNs can be specified as an array (e.g. isbns[]=0441172717&isbns[]=0141439602) or a single, comma-separated string (e.g. isbns=0441172717,0141439602). You can mix ISBN10s and ISBN13s, but you'll receive a 422 error if you don't specify any, and you'll receive a 404 if none are found.
-        '''
+        """
         raise NotImplementedError
         self.get('book/review_counts.json')
-# Parameters:     key: Developer key (required).    isbns: Array of ISBNs
-# or a comma seperated string of ISBNs (1000 ISBNs per request max.)
-# format: json    callback: function to wrap JSON response
 
-    def book_title(self,):
-        '''
+    # Parameters:     key: Developer key (required).    isbns: Array of ISBNs
+    # or a comma seperated string of ISBNs (1000 ISBNs per request max.)
+    # format: json    callback: function to wrap JSON response
+
+    def book_title(self, ):
+        """
         Get the reviews for a book given a title string.
 
         Get an xml file that contains embed code for the iframe reviews widget, which shows an excerpt (first 300 characters) of the most popular reviews of a book for a given title/author. The book shown will be the most popular book that matches all the keywords in the input string. The reviews are from all known editions of the book.
-        '''
+        """
         raise NotImplementedError
         self.get('book/title?format=FORMAT')
-# format: xml or json
-# key: Developer key (required)
-# title
-# author; optional
-# rating; optional
+
+    # format: xml or json
+    # key: Developer key (required)
+    # title
+    # author; optional
+    # rating; optional
 
     def book_isbn_to_id(self, isbn):
-        '''
+        """
         Get the Goodreads book ID given an ISBN: http://www.goodreads.com/api#book.isbn_to_id
-        '''
+        """
         raise NotImplementedError
         response = self.get('book/isbn_to_id', {'isbn': isbn})
 
-# Series
-    def series_show(self,):
-        '''
+    # Series
+    def series_show(self, ):
+        """
         See a series.
 
         Info on a series
-        '''
+        """
         raise NotImplementedError
         self.get('series/show.xml?id=ID')
 
-    def series_list(self,):
-        '''
+    def series_list(self, ):
+        """
         See all series by an author.
 
         List of all series by an author
-        '''
+        """
         raise NotImplementedError
         self.get('/series/list?format=xml&id=AUTHOR_ID')
 
-    def series_work(self,):
-        '''
+    def series_work(self, ):
+        """
         See all series a work is in.
 
         List of all series a work is in
-        '''
+        """
 
         self.get('series/work.xml?id=WORK_ID')
 
-    def topic_create(self,):
-        '''
+    def topic_create(self, ):
+        """
         Create a new topic via OAuth.
 
         Create a new topic using OAuth. You'll need to register your app (required).
-        '''
+        """
         raise NotImplementedError
         self.POST('topic.xml')
         # Parameters:     topic[subject_type]: Either 'Book' or 'Group'. If
@@ -1006,12 +1011,12 @@ class Goodreads(object):
         # to the topic (user will get one email only). To enable, set to 'on';
         # otherwise, default is not to add to update feed
 
-    def topic_group_folder(self,):
-        '''
+    def topic_group_folder(self, ):
+        """
         Get list of topics in a group's folder.
 
         Returns a list of topics in a group's folder specified either by folder id or by group id.
-        '''
+        """
         raise NotImplementedError
         self.get('topic/group_folder/FOLDER_ID.xml')
         # Parameters:     group_id: If supplied and id is set to 0, then will
@@ -1022,22 +1027,22 @@ class Goodreads(object):
         # of 'comments_count', 'title', 'updated_at', 'views'    order: 'a' for
         # ascending, 'd' for descending    key: Developer key (required).
 
-    def topic_show(self,):
-        '''
+    def topic_show(self, ):
+        """
         Get info about a topic by id.
 
         XML version of topic/show
-        '''
+        """
         raise NotImplementedError
         self.get('topic/show/TOPIC_ID?format=xml')
         # Parameters:     key: Developer key (required).
 
-    def topic_unread_group(self,):
-        '''
+    def topic_unread_group(self, ):
+        """
         Get a list of topics with unread comments.
 
         Get a list of topics from a specified group that have comments added since the last time the user viewed the topic using OAuth. You'll need to register your app (required).
-        '''
+        """
         raise NotImplementedError
         self.get('topic/unread_group/GROUP_ID?format=xml')
         # Parameters:     viewed: Indicates whether to show topics user has
@@ -1047,12 +1052,12 @@ class Goodreads(object):
         # sort: One of 'comments_count', 'title', 'updated_at', 'views'
         # order: 'a' for ascending, 'd' for descending
 
-    def quotes_create(self,):
-        '''
+    def quotes_create(self, ):
+        """
         Add a quote.
 
         Add a quote using OAuth. If you don't specify an author_id, it will try to look one up based on the author_name you provide. You'll need to register your app (required).
-        '''
+        """
         raise NotImplementedError
         self.POST('quotes.xml')
         # Parameters:     quote[author_name]: Name of the quote author
@@ -1062,31 +1067,31 @@ class Goodreads(object):
         # of the book from which the quote was taken. This will not override
         # the book_id if it was provided
 
-# Extra Permissions
+    # Extra Permissions
     def work_editions(self):
-        '''
+        """
         List of all the available editions of a particular work. This API requires extra permission
-        '''
+        """
         raise NotImplementedError(
             'Extra permissions from goodreads were denied for development.')
 
-    def list_show(self,):
-        '''
+    def list_show(self, ):
+        """
         Get the books from a listopia list. This API requires extra permission
-        '''
+        """
         raise NotImplementedError(
             'Extra permissions from goodreads were denied for development.')
 
-    def list_tag(self,):
-        '''
+    def list_tag(self, ):
+        """
         Get the listopia lists for a given tag. This API requires extra permission
-        '''
+        """
         raise NotImplementedError(
             'Extra permissions from goodreads were denied for development.')
 
-    def list_book(self,):
-        '''
+    def list_book(self, ):
+        """
         Get the listopia lists for a given book. This API requires extra permission
-        '''
+        """
         raise NotImplementedError(
             'Extra permissions from goodreads were denied for development.')
