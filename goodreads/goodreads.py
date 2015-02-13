@@ -6,6 +6,27 @@ from lxml import objectify
 import oauth2 as oauth
 import requests
 
+def _oauth(f):
+    """ Decorator to check for oauth setup"""
+
+    def wrapper(self):
+        if not self.oauth:
+            raise GoodreadsException('Operation requires OAuth; not provided')
+        else:
+            f(self)
+
+    return wrapper
+
+def _developer(f):
+    """ Decorator to check for developer key setup"""
+
+    def wrapper(self):
+        if not self.developer:
+            raise GoodreadsException('Operation requires developer api keys; not provided')
+        else:
+            f(self)
+
+    return wrapper
 
 class GoodreadsError(Exception):
     """Base class for exceptions in this module."""
@@ -95,30 +116,6 @@ class Goodreads(object):
 
     def __repr__(self):
         return '<Goodreads:%s>' % self.developer_key
-
-    @classmethod
-    def _oauth(cls, f):
-        """ Decorator to check for oauth setup"""
-
-        def wrapper(self):
-            if not self.oauth:
-                raise GoodreadsException('Operation requires OAuth; not provided')
-            else:
-                f(self)
-
-        return wrapper
-
-    @classmethod
-    def _developer(cls, f):
-        """ Decorator to check for developer key setup"""
-
-        def wrapper(self):
-            if not self.developer:
-                raise GoodreadsException('Operation requires developer api keys; not provided')
-            else:
-                f(self)
-
-        return wrapper
 
     # HTTP helpers
 
@@ -230,4 +227,3 @@ class Goodreads(object):
             access_token['oauth_token_secret'])
         self.client = oauth.Client(self.consumer, self.token)
         return self.token
-
