@@ -3,4 +3,8 @@
 
 __author__ = 'Paul Shannon'
 __email__ = 'paul@paulshannon.ca'
-__version__ = '0.1.2'
+__version__ = '0.1.3'
+
+__all__ = ["Goodreads"]
+
+from goodreads import Goodreads
