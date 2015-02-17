@@ -1,11 +1,10 @@
 def oauth_required(f):
     """ Decorator for oauth setup"""
 
-    def wrapper(self):
-        if not self.oauth:
-            raise GoodreadsError('Operation requires OAuth; not provided')
-        else:
-            f(self)
+    def wrapper(*args, **kwargs):
+        if 'session' not in kwargs:
+            raise GoodreadsError('Operation requires OAuth session; not provided')
+        f(*args, **kwargs)
 
     return wrapper
 
@@ -13,11 +12,11 @@ def oauth_required(f):
 def developer_required(f):
     """ Decorator for developer key setup"""
 
-    def wrapper(self):
+    def wrapper(*args, **kwargs):
         if not self.developer:
             raise GoodreadsError('Operation requires developer api keys; not provided')
         else:
-            f(self)
+            f(*args, **kwargs)
 
     return wrapper
 
@@ -25,7 +24,7 @@ def developer_required(f):
 def extra_permissions_required(f):
     """ Decorator for extra permissions required methods"""
 
-    def wrapper(self):
+    def wrapper(*args, **kwargs):
         raise GoodreadsNotImplementedError(
             'Operation requires extra permissions; Permission were withheld for development of python-goodreads')
 

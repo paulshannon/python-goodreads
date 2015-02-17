@@ -46,7 +46,7 @@ class GoodreadsAPI(object):
     @oauth_required
     def auth_user(self, **kwargs):
         """Get id of user who authorized OAuth"""
-        return self._api_call(self._get, 'api/auth_user', session=session, container='user', **kwargs)
+        return self._api_call(self._get, 'api/auth_user', container='user', **kwargs)
 
     @developer_required
     def author_books(self, **kwargs):
