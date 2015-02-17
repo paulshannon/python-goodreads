@@ -1,15 +1,14 @@
-import pprint
-
-from goodreads.models import GoodreadsUser
-
 try:
-    from examples.local_settings import DEVELOPER_KEY, DEVELOPER_SECRET
+    from local_settings import DEVELOPER_KEY, DEVELOPER_SECRET
 except ImportError:
     DEVELOPER_KEY = u'your-developer-key'
     DEVELOPER_SECRET = u'your-developer-secret'
 
-# noinspection PyCompatibility
+import pprint
+
 from builtins import input
+
+from goodreads.models import GoodreadsUser
 from goodreads import Goodreads
 
 Goodreads(DEVELOPER_KEY, DEVELOPER_SECRET)

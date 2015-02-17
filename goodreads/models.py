@@ -2,8 +2,8 @@ from collections import defaultdict
 
 from rauth import OAuth1Session
 
-from goodreads.api import GoodreadsAPI
-from goodreads.util import LazyProperty
+from api import GoodreadsAPI
+from util import LazyProperty
 
 
 class Goodreads(object):
@@ -144,7 +144,7 @@ class GoodreadsBook(GoodreadsObject):
         There will be cases where a result is shown on the Goodreads site, but not through the API. This happens when
         the result is an Amazon-only edition and we have to honor Amazon's terms of service.
 
-        :param search_string:
+        :param query:
         :param field:
         :param page:
         :return: List of GoodreadsBook

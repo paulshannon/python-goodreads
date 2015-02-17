@@ -1,5 +1,5 @@
-def _oauth(f):
-    """ Decorator to check for oauth setup"""
+def oauth_required(f):
+    """ Decorator for oauth setup"""
 
     def wrapper(self):
         if not self.oauth:
@@ -10,14 +10,24 @@ def _oauth(f):
     return wrapper
 
 
-def _developer(f):
-    """ Decorator to check for developer key setup"""
+def developer_required(f):
+    """ Decorator for developer key setup"""
 
     def wrapper(self):
         if not self.developer:
             raise GoodreadsError('Operation requires developer api keys; not provided')
         else:
             f(self)
+
+    return wrapper
+
+
+def extra_permissions_required(f):
+    """ Decorator for extra permissions required methods"""
+
+    def wrapper(self):
+        raise GoodreadsNotImplementedError(
+            'Operation requires extra permissions; Permission were withheld for development of python-goodreads')
 
     return wrapper
 
@@ -56,3 +66,6 @@ class GoodreadsError(Exception):
 class InvalidResponse(GoodreadsError):
     pass
 
+
+class GoodreadsNotImplementedError(GoodreadsError):
+    pass
