@@ -1,3 +1,4 @@
+future
 six
 xmltodict
 httplib2>=0.8
