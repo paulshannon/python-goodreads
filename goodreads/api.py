@@ -12,11 +12,20 @@ class GoodreadsAPI(object):
     __instance = None
 
     def __new__(cls, *args, **kwargs):
+        """Implements a 'singleton' pattern so the GoodreadsObjects can access the API via Goodreads"""
         if GoodreadsAPI.__instance is None:
             GoodreadsAPI.__instance = object.__new__(cls)
         return GoodreadsAPI.__instance
 
     def __init__(self, consumer_key=None, consumer_secret=None):
+        """ Initialize the API with goodreads.com keys
+
+        See <https://www.goodreads.com/api/keys> to register your app and to get your keys
+
+        Args:
+            consumer_key (str): The goodreads.com developer 'key'
+            consumer_secret (str): The goodreads.com developer 'secret'
+        """
         if consumer_key and consumer_secret:
             self.service = OAuth1Service(
                 consumer_key=consumer_key,
@@ -31,14 +40,21 @@ class GoodreadsAPI(object):
             self.request_secret = None
 
     def get_request_token(self):
+        """Get a request token from goodreads.com to use in the authorization url"""
+
         return self.service.get_request_token(header_auth=True)
 
     def get_authorize_url(self, request_token, oauth_callback=None, mobile=False):
         """Retrieve the URL to redirect the user to so that they may authorize your app.
 
-        The oauth_callback argument should be set to the URL which you wish Goodreads
-        to call when the user finishes authorizing your application.
+        Args:
+            request_token (str)
+            oauth_callback (str, optional):The URL which you wish Goodreads to redirect the user to when the user
+                finishes authorizing your application. Defaults to None.
+            mobile (bool, optional): defaults to False
 
+        Returns:
+            str: The url to give to the user.
         """
         url = self.service.get_authorize_url(request_token)
         if oauth_callback is not None:
@@ -48,6 +64,15 @@ class GoodreadsAPI(object):
         return url
 
     def get_session(self, request_token, request_secret):
+        """Retrieve the oauth session based on a (presumably) successful authorization
+
+        Args:
+            request_token (str): The request token from GoodreadsAPI.get_request_token
+            request_secret (str): The request secret from GoodreadsAPI.get_request_token
+
+        Returns:
+            OAuth1Session: A session to use to communicate with goodreads.com for a user or None on error
+        """
         return self.service.get_auth_session(request_token, request_secret)
 
     # API methods
@@ -110,7 +135,7 @@ class GoodreadsAPI(object):
         )
 
     def _get(self, path, session=None, **kwargs):
-        """Utility method for GETting from the Goodreads API"""
+        """Utility method for GET-ting from the Goodreads API"""
         if not session:
             session = requests
         url = self.service.base_url + path
@@ -119,7 +144,7 @@ class GoodreadsAPI(object):
         return response.content
 
     def _post(self, path, session=None, **kwargs):
-        """Utility method for POSTing to the Goodreads API"""
+        """Utility method for POST-ing to the Goodreads API"""
         if not session:
             session = self.service
         url = self.service.base_url + path
