@@ -32,7 +32,7 @@ class LazyProperty(object):
         self.fget = fget
         self.func_name = fget.__name__
 
-
+    # noinspection PyUnusedLocal
     def __get__(self, obj, cls):
         if obj is None:
             return None

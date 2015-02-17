@@ -13,8 +13,8 @@ class Goodreads(object):
         Sets up the API singleton. Allows direct access to some site wide info.
 
         Args:
-            developer_key (str): The Goodreads API developer key; required for almost everything
-            developer_secret (str): The Goodreads API developer secret; required for almost everything
+            consumer_key (str): The Goodreads API developer key; required for almost everything
+            consumer_secret (str): The Goodreads API developer secret; required for almost everything
         """
         self._api = GoodreadsAPI(consumer_key, consumer_secret)
 
@@ -42,6 +42,7 @@ class GoodreadsUser(GoodreadsObject):
         self.logged_in = False
 
         if access_token and access_token_secret:
+            # noinspection PyStatementEffect
             self.session
 
         self.pk = pk
@@ -58,6 +59,7 @@ class GoodreadsUser(GoodreadsObject):
 
     @LazyProperty
     def request_token(self):
+        # noinspection PyAttributeOutsideInit
         request_token, self.request_secret = self.api.get_request_token()
         return request_token
 
@@ -118,7 +120,6 @@ class GoodreadsWork(GoodreadsObject):
         self.reviews_count = reviews_count
         self.books_count = books_count
         self.best_book = best_book
-
 
     @staticmethod
     def from_object(object_):

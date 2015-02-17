@@ -1,4 +1,5 @@
 import pprint
+
 from goodreads.models import GoodreadsUser
 
 try:
@@ -7,6 +8,7 @@ except ImportError:
     DEVELOPER_KEY = u'your-developer-key'
     DEVELOPER_SECRET = u'your-developer-secret'
 
+# noinspection PyCompatibility
 from builtins import input
 from goodreads import Goodreads
 
@@ -20,4 +22,4 @@ while accepted.lower() == 'n':
     accepted = input('Have you authorized me? (y/n) ')
 
 print(u'Save user.session.access_token and user.session.access_token_secret:')
-pprint.pprint({'access_token': user.session.access_token, 'access_token_secret':user.session.access_token_secret})
+pprint.pprint({'access_token': user.session.access_token, 'access_token_secret': user.session.access_token_secret})
