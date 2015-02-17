@@ -10,7 +10,7 @@ Tests for `goodreads` module.
 
 import unittest
 
-from goodreads import goodreads
+from goodreads import models
 
 
 class TestGoodreads(unittest.TestCase):

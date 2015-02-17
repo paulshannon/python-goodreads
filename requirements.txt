@@ -1,4 +1,6 @@
+six
+xmltodict
 httplib2>=0.8
 lxml>=3.2.4
-oauth2>=1.5.211
+rauth
 requests>=2.2.1

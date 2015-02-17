@@ -7,4 +7,4 @@ __version__ = '0.2.0'
 
 __all__ = ["Goodreads"]
 
-from goodreads import Goodreads
+from .models import Goodreads

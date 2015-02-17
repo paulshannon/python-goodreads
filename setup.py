@@ -30,7 +30,7 @@ setup(
     ],
     package_dir={'Goodreads': 'goodreads'},
     include_package_data=True,
-    install_requires=['oauth2', 'requests', 'lxml'],
+    install_requires=['rauth', 'requests', 'lxml'],
     license="BSD",
     zip_safe=False,
     keywords='goodreads',
