@@ -1,10 +1,10 @@
 def oauth_required(f):
     """ Decorator for oauth setup"""
 
-    def wrapper(*args, **kwargs):
+    def wrapper(self, *args, **kwargs):
         if 'session' not in kwargs:
             raise GoodreadsError('Operation requires OAuth session; not provided')
-        f(*args, **kwargs)
+        return f(self, *args, **kwargs)
 
     return wrapper
 
@@ -12,11 +12,12 @@ def oauth_required(f):
 def developer_required(f):
     """ Decorator for developer key setup"""
 
-    def wrapper(*args, **kwargs):
-        if not self.developer:
+    def wrapper(self, *args, **kwargs):
+        if not self.service.consumer_key:
             raise GoodreadsError('Operation requires developer api keys; not provided')
         else:
-            f(*args, **kwargs)
+            kwargs.update(key=self.service.consumer_key)
+            return f(self, *args, **kwargs)
 
     return wrapper
 

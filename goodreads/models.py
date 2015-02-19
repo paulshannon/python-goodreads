@@ -2,8 +2,8 @@ from collections import defaultdict
 
 from rauth import OAuth1Session
 
-from api import GoodreadsAPI
-from util import LazyProperty
+from .api import GoodreadsAPI
+from .util import LazyProperty
 
 
 class Goodreads(object):

@@ -5,7 +5,7 @@ import requests
 import xmltodict
 import six
 
-from util import oauth_required, developer_required, extra_permissions_required
+from .util import oauth_required, developer_required, extra_permissions_required
 
 
 class GoodreadsAPI(object):
@@ -45,27 +45,43 @@ class GoodreadsAPI(object):
 
     @oauth_required
     def auth_user(self, **kwargs):
-        """Get id of user who authorized OAuth"""
+        """Get id of user who authorized OAuth
+
+        https://www.goodreads.com/api/index#auth.user
+        """
         return self._api_call(self._get, 'api/auth_user', container='user', **kwargs)
 
     @developer_required
     def author_books(self, **kwargs):
-        """Get a response with a paginated list of an authors books."""
+        """Get a response with a paginated list of an authors books.
+
+        https://www.goodreads.com/api/index#author.books
+        """
         return self._api_call(self._get, 'author/list.xml', container='author', **kwargs)
 
     @developer_required
     def author_show(self, **kwargs):
-        """Get a response with info about an author."""
+        """Get a response with info about an author.
+
+        https://www.goodreads.com/api/index#author.show
+        """
         return self._api_call(self._get, 'author/show.xml', container='author', **kwargs)
 
     @developer_required
     def book_isbn_to_id(self, **kwargs):
-        """Get the Goodreads book ID given an ISBN"""
+        """Get the Goodreads book ID given an ISBN
+
+        https://www.goodreads.com/api/index#book.isbn_to_id
+        """
         return self._api_call(self._get, 'book/isbn_to_id', raw=True, **kwargs)
 
     @developer_required
     def book_review_counts(self, **kwargs):
-        """Get review statistics given a list of ISBNs"""
+        """Get review statistics given a list of ISBNs
+
+        https://www.goodreads.com/api/index#book.review_counts
+        """
+        return self._api_call(self._get, 'book/review_counts.json', raw=True, **kwargs)
 
     @developer_required
     def book_show(self, **kwargs):

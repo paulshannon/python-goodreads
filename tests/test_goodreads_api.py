@@ -13,7 +13,7 @@ import unittest
 from rauth import OAuth1Session
 
 from goodreads.api import GoodreadsAPI
-import local_settings
+from tests import local_settings
 
 
 class TestGoodreadsApi(unittest.TestCase):
@@ -28,7 +28,27 @@ class TestGoodreadsApi(unittest.TestCase):
 
     def test_auth_user(self):
         response = self.api.auth_user(session=self.session)
-        assertEqual(response['@id'], local_settings.AUTH_USER['id'])
+        self.assertEqual(response['@id'], local_settings.AUTH_USER['id'])
+
+    def test_author_books(self):
+        # 18541, Tim O'Reilly
+        response = self.api.author_books(id=18541)
+        self.assertEqual(response['id'], '18541')
+        self.assertEqual(response['name'], "Tim O'Reilly")
+        self.assertEqual(len(response['books']['book']), 30)
+
+    def test_author_show(self):
+        # 18541, Tim O'Reilly
+        response = self.api.author_show(id=18541)
+        self.assertEqual(response['id'], '18541')
+        self.assertEqual(response['name'], "Tim O'Reilly")
+
+    def test_books_isbn_to_id(self):
+        response = self.api.book_isbn_to_id(isbn=9780596001087)
+        self.assertEqual(response['id'], '134825')
+
+    def test_book_review_counts(self):
+        response = self.api.book_review_counts()
 
     def tearDown(self):
         pass
