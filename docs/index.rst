@@ -9,11 +9,13 @@ Welcome to python-goodreads's documentation!
 Contents:
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
    readme
    installation
    usage
+   goodreads
+   goodreadsapi
    contributing
    authors
    history

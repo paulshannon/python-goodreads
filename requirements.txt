@@ -1,7 +1,4 @@
 future
 six
 xmltodict
-httplib2>=0.8
-lxml>=3.2.4
 rauth
-requests>=2.2.1

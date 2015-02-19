@@ -1,6 +1,8 @@
+from functools import wraps
+
 def oauth_required(f):
     """ Decorator for oauth setup"""
-
+    @wraps(f)
     def wrapper(self, *args, **kwargs):
         if 'session' not in kwargs:
             raise GoodreadsError('Operation requires OAuth session; not provided')
@@ -11,7 +13,7 @@ def oauth_required(f):
 
 def developer_required(f):
     """ Decorator for developer key setup"""
-
+    @wraps(f)
     def wrapper(self, *args, **kwargs):
         if not self.service.consumer_key:
             raise GoodreadsError('Operation requires developer api keys; not provided')
@@ -24,7 +26,7 @@ def developer_required(f):
 
 def extra_permissions_required(f):
     """ Decorator for extra permissions required methods"""
-
+    @wraps(f)
     def wrapper(*args, **kwargs):
         raise GoodreadsNotImplementedError(
             'Operation requires extra permissions; Permission were withheld for development of python-goodreads')

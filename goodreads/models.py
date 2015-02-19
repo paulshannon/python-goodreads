@@ -2,7 +2,7 @@ from collections import defaultdict
 
 from rauth import OAuth1Session
 
-from .api import GoodreadsAPI
+from .api import GoodreadsApi
 from .util import LazyProperty
 
 
@@ -16,7 +16,7 @@ class Goodreads(object):
             consumer_key (str): The Goodreads API developer key; required for almost everything
             consumer_secret (str): The Goodreads API developer secret; required for almost everything
         """
-        self._api = GoodreadsAPI(consumer_key, consumer_secret)
+        self._api = GoodreadsApi(consumer_key, consumer_secret)
 
     def __repr__(self):
         return '<Goodreads:%s>' % self._api.service.consumer_key
@@ -25,7 +25,7 @@ class Goodreads(object):
 class GoodreadsObject(object):
     def __init__(self, pk=None):
         self.pk = pk
-        self.api = GoodreadsAPI()
+        self.api = GoodreadsApi()
 
     def __repr__(self):
         return '<%s:%s>' % (self.__class__.__name__, self.pk)
@@ -33,6 +33,19 @@ class GoodreadsObject(object):
 
 class GoodreadsUser(GoodreadsObject):
     def __init__(self, access_token=None, access_token_secret=None, pk=None, name=None, url=None):
+        """ Create a GoodreadsUser object
+
+        :param access_token: Access token acquired through the OAuth process
+        :type access_token: string
+        :param access_token_secret: Access token secret acquired through the OAuth process
+        :type access_token_secret:string
+        :param pk: Goodreads.com user id
+        :type pk: string or int
+        :param name: Goodreads.com user name
+        :type name: string
+        :param url: Goodreads.com user page
+        :type url: string
+        """
         super(GoodreadsUser, self).__init__(pk)
         self.api_called = defaultdict(lambda: None)
 
