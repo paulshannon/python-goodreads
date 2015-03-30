@@ -1,4 +1,11 @@
 ===============================
+No Longer Maintained
+===============================
+Please see: https://github.com/sefakilic/goodreads for a much more fully implemented wrapper.
+
+If you are interested in *this* code base, significant work was put into an improved implementation but is still unfinished: https://github.com/paulshannon/python-goodreads/tree/feature/rewrite
+
+===============================
 Goodreads
 ===============================
 
